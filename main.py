@@ -6,7 +6,10 @@ from PIL import Image
 
 from PyQt6 import uic
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QTableWidgetItem, QHeaderView, QWidget, QPushButton
+from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QPushButton
+
+LIGHT = 'light'
+DARK = 'dark'
 
 
 def get_delta(toponym) -> list[str, str]:
@@ -20,15 +23,22 @@ def get_delta(toponym) -> list[str, str]:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-
         uic.loadUi('maps_api.ui', self)  # Загружаем дизайн
+        # задаем тему карты
+        self.theme = LIGHT
+        self.theme_button.clicked.connect(self.change_theme)
         # задаем фиксированный размер
-        size = [600, 450]
+        size = [800, 450]
         self.setFixedSize(*size)
         # получаем топоним
         self.toponym_to_find = ''
         if len(sys.argv) > 1:
             self.toponym_to_find = " ".join(sys.argv[1:])
+
+        self.init_api_settings()
+        self.show_map()
+
+    def init_api_settings(self):
         # параметры апи геокодера
         self.geocoder_server = "http://geocode-maps.yandex.ru/1.x/"
         self.geocoder_apikey = "8013b162-6b42-4997-9691-77b7074026e0"
@@ -45,14 +55,7 @@ class MainWindow(QMainWindow):
             "spn": '',
             "apikey": ''
         }
-        self.map_size = [str(num) for num in size]
-
-        # если передан топоним, делаем запрос и рисуем карту
-        if self.toponym_to_find:
-            image = Image.open(BytesIO(self.get_map_picture()))
-            image.save('map.png')
-            pixmap = QPixmap('map.png')
-            self.map_label.setPixmap(pixmap)
+        self.map_size = [str(num) for num in [600, 450]]
 
     def get_response(self, server, params):
         return requests.get(server, params=params)
@@ -71,10 +74,28 @@ class MainWindow(QMainWindow):
             "ll": ",".join([toponym_longitude, toponym_lattitude]),
             "spn": ",".join(get_delta(toponym)),
             "apikey": self.map_apikey,
-            "size": ','.join(self.map_size)
+            "size": ','.join(self.map_size),
+            "theme": self.theme
         }
 
-        return self.get_response(self.map_server, self.map_params).content
+        return self.get_response(self.map_server, self.map_params)
+
+    def show_map(self):
+        # если передан топоним, делаем запрос и рисуем карту
+        if self.toponym_to_find:
+            # получаем и сохраняем картинку
+            image = Image.open(BytesIO(self.get_map_picture().content))
+            image.save('map.png')
+            pixmap = QPixmap('map.png')
+            self.map_label.setPixmap(pixmap)
+
+    def change_theme(self):
+        # смена цветовой темы карты
+        if self.theme == LIGHT:
+            self.theme = DARK
+        elif self.theme == DARK:
+            self.theme = LIGHT
+        self.show_map()
 
 
 if __name__ == '__main__':

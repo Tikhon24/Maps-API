@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
+    <width>800</width>
     <height>450</height>
    </rect>
   </property>
@@ -24,6 +24,26 @@
    </property>
    <property name="text">
     <string>l</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="theme_button">
+   <property name="geometry">
+    <rect>
+     <x>600</x>
+     <y>0</y>
+     <width>200</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>11</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>(тёмная/светлая) тема</string>
    </property>
   </widget>
  </widget>
