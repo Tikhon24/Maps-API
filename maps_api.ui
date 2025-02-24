@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>807</width>
     <height>450</height>
    </rect>
   </property>
@@ -44,6 +44,32 @@
    </property>
    <property name="text">
     <string>(тёмная/светлая) тема</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="Up_text">
+   <property name="geometry">
+    <rect>
+     <x>650</x>
+     <y>400</y>
+     <width>141</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PgUp - приблизить карту</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="Down_text">
+   <property name="geometry">
+    <rect>
+     <x>650</x>
+     <y>420</y>
+     <width>141</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PgDown - отдалить карту</string>
    </property>
   </widget>
  </widget>

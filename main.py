@@ -7,10 +7,14 @@ from PIL import Image
 from PyQt6 import uic
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QPushButton
+from PyQt6.QtCore import Qt
 
 LIGHT = 'light'
 DARK = 'dark'
 
+# Минимальный и максимальный масштаб
+MIN_SPN = 0.01
+MAX_SPN = 90
 
 def get_delta(toponym) -> list[str, str]:
     lower_corner = toponym["boundedBy"]["Envelope"]["lowerCorner"].split()
@@ -56,45 +60,59 @@ class MainWindow(QMainWindow):
             "apikey": ''
         }
         self.map_size = [str(num) for num in [600, 450]]
+        # Начальный масштаб
+        self.spn = get_delta(self.get_toponym())
+        self.spn = [float(x) for x in self.spn]
 
     def get_response(self, server, params):
         return requests.get(server, params=params)
 
-    def get_map_picture(self):
-        # Преобразуем ответ в json-объект
+    def get_toponym(self):
         json_response = self.get_response(self.geocoder_server, self.geocoder_params).json()
-        # Получаем первый топоним из ответа геокодера.
-        toponym = json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
-        # Координаты центра топонима:
+        return json_response["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
+
+    def get_map_picture(self):
+        toponym = self.get_toponym()
         toponym_coodrinates = toponym["Point"]["pos"]
-        # Долгота и широта:
         toponym_longitude, toponym_lattitude = toponym_coodrinates.split(" ")
-        # Собираем параметры для запроса к StaticMapsAPI:
         self.map_params = {
             "ll": ",".join([toponym_longitude, toponym_lattitude]),
-            "spn": ",".join(get_delta(toponym)),
+            "spn": ",".join(map(str, self.spn)),
             "apikey": self.map_apikey,
             "size": ','.join(self.map_size),
             "theme": self.theme
         }
-
         return self.get_response(self.map_server, self.map_params)
 
     def show_map(self):
-        # если передан топоним, делаем запрос и рисуем карту
         if self.toponym_to_find:
-            # получаем и сохраняем картинку
             image = Image.open(BytesIO(self.get_map_picture().content))
             image.save('map.png')
             pixmap = QPixmap('map.png')
             self.map_label.setPixmap(pixmap)
 
     def change_theme(self):
-        # смена цветовой темы карты
         if self.theme == LIGHT:
             self.theme = DARK
         elif self.theme == DARK:
             self.theme = LIGHT
+        self.show_map()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_PageUp:
+            self.zoom_in()
+        elif event.key() == Qt.Key.Key_PageDown:
+            self.zoom_out()
+        super().keyPressEvent(event)
+
+    def zoom_in(self):
+        # Увеличение масштаба
+        self.spn = [min(x / 1.55, MAX_SPN) for x in self.spn]
+        self.show_map()
+
+    def zoom_out(self):
+        # Уменьшение масштаба
+        self.spn = [max(x * 1.55, MIN_SPN) for x in self.spn]
         self.show_map()
 
 
@@ -103,3 +121,4 @@ if __name__ == '__main__':
     ex = MainWindow()
     ex.show()
     sys.exit(app.exec())
+
