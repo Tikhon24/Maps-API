@@ -35,7 +35,7 @@ class MainWindow(QMainWindow):
         self.search_input.returnPressed.connect(self.search_object)
 
         self.setFixedSize(807, 450)
-        self.toponym_to_find = 'Красноярск' #Установили Красноярск
+        self.toponym_to_find = 'Красноярск' #Установили Красноярск :)
         if len(sys.argv) > 1:
             self.toponym_to_find = " ".join(sys.argv[1:])
 
@@ -45,6 +45,7 @@ class MainWindow(QMainWindow):
         self.show_map()
 
     def init_api_settings(self):
+        # параметры апи геокодера
         self.geocoder_server = "http://geocode-maps.yandex.ru/1.x/"
         self.geocoder_apikey = "8013b162-6b42-4997-9691-77b7074026e0"
         self.geocoder_params = {
@@ -82,7 +83,7 @@ class MainWindow(QMainWindow):
                 "theme": self.theme
             }
 
-            # Добавляем метки, если они есть
+            # Добавляем метки
             if self.markers:
                 params["pt"] = "~".join(self.markers)
             return requests.get(self.map_server, params=params)
@@ -100,6 +101,7 @@ class MainWindow(QMainWindow):
         self.theme = DARK if self.theme == LIGHT else LIGHT
         self.show_map()
 
+    # Поиск Объекта на карте
     def search_object(self):
         self.toponym_to_find = self.search_input.text()
         if self.toponym_to_find:
@@ -113,6 +115,7 @@ class MainWindow(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "Ошибка поиска", f"Не удалось найти: {self.toponym_to_find}")
 
+    # Изменение масштаба
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_PageUp:
             self.spn = [min(x / 1.55, MAX_SPN) for x in self.spn]
